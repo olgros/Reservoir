@@ -155,6 +155,12 @@ public class Reservoir {
         new PutTask(key, object, callback).execute();
     }
 
+    public static void putAsync(final String key, final Object object,
+                                final ReservoirPutCallback callback, long timeExpire) {
+        failIfNotInitialised();
+        new PutTaskExpire(key, object, callback,timeExpire).execute();
+    }
+
     /**
      * Put an object into Reservoir with the given key asynchronously. Previously
      * stored object with the same
@@ -192,7 +198,7 @@ public class Reservoir {
      * @throws IllegalStateException thrown if init method hasn't been called.
      * @throws IOException           thrown if cache cannot be accessed.
      */
-    public static <T> T get(final String key, final Class<T> classOfT) throws IOException {
+    public static <T> T getOld(final String key, final Class<T> classOfT) throws IOException {
         failIfNotInitialised();
         String json = cache.getString(key).getString();
         T value = sGson.fromJson(json, classOfT);
@@ -201,7 +207,7 @@ public class Reservoir {
         return value;
     }
 
-    public static <T> T get2(final String key, final Class<T> classOfT) throws IOException {
+    public static <T> T get(final String key, final Class<T> classOfT) throws IOException {
         failIfNotInitialised();
 
         String jsonData = cache.getString(key).getString();
@@ -462,6 +468,54 @@ public class Reservoir {
             try {
                 String json = sGson.toJson(object);
                 cache.put(key, json);
+            } catch (Exception e) {
+                this.e = e;
+            }
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Void aVoid) {
+            if (callback != null) {
+                if (e == null) {
+                    callback.onSuccess();
+                } else {
+                    callback.onFailure(e);
+                }
+            }
+        }
+
+    }
+
+    private static class PutTaskExpire extends AsyncTask<Void, Void, Void> {
+        private final String key;
+        private Exception e;
+        private final ReservoirPutCallback callback;
+        final Object object;
+        private long timeExpire;
+
+        private PutTaskExpire(String key, Object object, ReservoirPutCallback callback,long timeExpire) {
+            this.key = key;
+            this.callback = callback;
+            this.object = object;
+            this.e = null;
+            this.timeExpire = timeExpire;
+        }
+
+        @Override
+        protected Void doInBackground(Void... params) {
+
+            try {
+                //String json = sGson.toJson(object);
+                //cache.put(key, json);
+                String json = sGson.toJson(object);
+
+                ReservoirData data = new ReservoirData();
+                data.setJson(json);
+                data.setTimeExpired(timeExpire);
+
+                String jsonData = sGson.toJson(data);
+                cache.put(key, jsonData);
             } catch (Exception e) {
                 this.e = e;
             }

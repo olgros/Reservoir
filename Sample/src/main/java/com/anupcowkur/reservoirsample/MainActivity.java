@@ -49,7 +49,7 @@ public class MainActivity extends AppCompatActivity {
                     break;
                 case R.id.btnObtener:
                     try {
-                        Data res = Reservoir.get2(KEY, Data.class);
+                        Data res = Reservoir.get(KEY, Data.class);
                         if (res == null){
                             txtResultado.setText("Ya expiro");
                             Log.e(KEY,"Ya expiro");
