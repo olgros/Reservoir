@@ -1,8 +1,10 @@
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
   android:layout_width="match_parent"
-  android:layout_height="match_parent">
+  android:layout_height="match_parent"
+   android:orientation="vertical"
+    >
 
-  <TextView
+  <TextView android:id="@+id/txtResultado"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
     android:layout_centerInParent="true"
@@ -10,4 +12,15 @@
     android:layout_marginRight="@dimen/reservoir_activity_horizontal_margin"
     android:gravity="center"
     android:text="@string/reservoir_sample_msg" />
-</RelativeLayout>
+
+  <Button android:id="@+id/btnGuardar"
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:text="Guardar"/>
+
+  <Button android:id="@+id/btnObtener"
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:text="Obtener"/>
+
+</LinearLayout>

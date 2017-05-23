@@ -117,6 +117,28 @@ public class Reservoir {
     }
 
     /**
+     * Put an object into Reservoir with the given key y expired time. This a blocking IO operation. Previously
+     * stored object with the same
+     * key (if any) will be overwritten.
+     *
+     * @param key    the key string.
+     * @param object the object to be stored.
+     * @throws IllegalStateException thrown if init method hasn't been called.
+     * @throws IOException           thrown if cache cannot be accessed.
+     */
+    public static void put(final String key, final Object object, long timeExpired) throws IOException {
+        failIfNotInitialised();
+        String json = sGson.toJson(object);
+
+        ReservoirData data = new ReservoirData();
+        data.setJson(json);
+        data.setTimeExpired(timeExpired);
+
+        String jsonData = sGson.toJson(data);
+        cache.put(key, jsonData);
+    }
+
+    /**
      * Put an object into Reservoir with the given key asynchronously. Previously
      * stored object with the same
      * key (if any) will be overwritten.
@@ -173,6 +195,25 @@ public class Reservoir {
     public static <T> T get(final String key, final Class<T> classOfT) throws IOException {
         failIfNotInitialised();
         String json = cache.getString(key).getString();
+        T value = sGson.fromJson(json, classOfT);
+        if (value == null)
+            throw new NullPointerException();
+        return value;
+    }
+
+    public static <T> T get2(final String key, final Class<T> classOfT) throws IOException {
+        failIfNotInitialised();
+
+        String jsonData = cache.getString(key).getString();
+        ReservoirData reservoirData = sGson.fromJson(jsonData, ReservoirData.class);
+        if (reservoirData == null)
+            throw new NullPointerException();
+
+
+        String json =  reservoirData.getJson(); //cache.getString(key).getString();
+        if (reservoirData.expired())
+           return null;
+
         T value = sGson.fromJson(json, classOfT);
         if (value == null)
             throw new NullPointerException();
